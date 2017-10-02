@@ -1,0 +1,7 @@
+bison-3.0.4
+flex-2.6.4
+gstal
+parser.tab.c
+parser.tab.h
+lex.yy.c
+*.slic
