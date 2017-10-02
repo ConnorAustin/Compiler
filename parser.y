@@ -34,8 +34,7 @@
 
 %%
 
-program: /* empty */
-|        MAIN SEMICOLON datasection algorithmsection END MAIN SEMICOLON
+program: MAIN SEMICOLON datasection algorithmsection END MAIN SEMICOLON
 ;
 
 datasection: DATA COLON vardeclarations
@@ -87,12 +86,12 @@ read: READ VAR SEMICOLON
 print: PRINT printlist SEMICOLON
 ;
 
-printlist: printlist COMMA VAR
-|          printlist COMMA BANG
+printlist: printlist COMMA BANG
 |          printlist COMMA STRING
-|          VAR
+|          printlist expression
 |          BANG
 |          STRING
+|          expression
 ;
 
 exit: EXIT SEMICOLON
@@ -102,7 +101,7 @@ counting: COUNTING VAR UPWARD expression TO expression SEMICOLON statements END 
 |         COUNTING VAR DOWNWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON
 ;
 
-expression: NOT compareexpr
+expression: NOT expression
 |           expression AND compareexpr
 |           expression OR compareexpr
 |           compareexpr
@@ -129,17 +128,15 @@ mulexpr: mulexpr MULTIPLY factor
 ;
 
 factor: LPAR expression RPAR
-|       MINUS atom
 |       atom
+|       MINUS factor
+|       PLUS factor
 ;
 
 atom: VAR
+|     VAR LBRACKET expression RBRACKET
 |     INT_CONSTANT
 |     REAL_CONSTANT
-;
-
-newlines: /* empty */
-|         newlines NEWLINE
 ;
 
 %%
