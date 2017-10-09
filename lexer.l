@@ -5,11 +5,13 @@
     /*--------------------*/
     #include <stdio.h>
     #include "parser.tab.h"
-    #define DEBUG 1
+
+    // Prints out the scanned tokens
+    #define DEBUG 0
 %}
 
 %%
-#.*                                              { if (DEBUG) printf("COMMENT: %s\n", yytext);       return COMMENT; }
+#.*                                              { if (DEBUG) printf("COMMENT: %s\n", yytext); }
 [0-9]+((\.[0-9]+(E[-+]?[0-9]+)?)|(E[-+]?[0-9]+)) { if (DEBUG) printf("REAL_CONSTANT: %s\n", yytext); return REAL_CONSTANT; }
 [0-9]+                                           { if (DEBUG) printf("INT_CONSTANT: %s\n", yytext);  return INT_CONSTANT; }
 [mM][aA][iI][nN]                                 { if (DEBUG) printf("MAIN: %s\n", yytext);          return MAIN; }
@@ -53,7 +55,7 @@
 ")"                                              { if (DEBUG) printf("RPAR: %s\n", yytext);          return RPAR; }
 \"([^"\n]|(\"\"))*\"                             { if (DEBUG) printf("STRING: %s\n", yytext);        return STRING; }
 [a-zA-Z][a-zA-Z0-9]*                             { if (DEBUG) printf("VAR: %s\n", yytext);           return VAR; }
-(\r)*\n                                          { /* if (DEBUG) printf("NEWLINE\n");                return NEWLINE; */ }
+(\r)*\n                                          { if (DEBUG) printf("NEWLINE\n"); }
 [ \t]                                            { /* Do nothing */ }
 .                                                { if (DEBUG) printf("TRASH: %s\n", yytext);         return TRASH; }
 %%

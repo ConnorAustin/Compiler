@@ -1,8 +1,7 @@
-compiler: lexer.l parser.y
+compiler: lexer.l parser.y main.c
 	bison -d parser.y
 	flex lexer.l
-	gcc -o compiler parser.tab.c lex.yy.c -lfl
-	./compiler < test.slic
+	gcc -o compiler main.c parser.tab.c lex.yy.c -lfl
 
 clean:
 	rm -f lex.yy.c
