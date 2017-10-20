@@ -1,5 +1,6 @@
-#include "parser.tab.h"
 #include <stdio.h>
+#include "parser.tab.h"
+#include "symbol_table.h"
 
 int main() {
 	// If an error occurred
@@ -7,6 +8,7 @@ int main() {
 		printf("Grammar not accepted...\n");
 	}
 	else {
+		symbolTablePrint();
 		printf("Grammar accepted!\n");
 	}
 }

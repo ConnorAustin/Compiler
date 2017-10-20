@@ -4,6 +4,7 @@
     /*  CS 4223, Compiler */
     /*--------------------*/
     #include <stdio.h>
+    #include <string.h>
     #include "parser.tab.h"
 
     // Prints out the scanned tokens
@@ -12,8 +13,8 @@
 
 %%
 #.*                                              { if (DEBUG) printf("COMMENT: %s\n", yytext); }
-[0-9]+((\.[0-9]+(E[-+]?[0-9]+)?)|(E[-+]?[0-9]+)) { if (DEBUG) printf("REAL_CONSTANT: %s\n", yytext); return REAL_CONSTANT; }
-[0-9]+                                           { if (DEBUG) printf("INT_CONSTANT: %s\n", yytext);  return INT_CONSTANT; }
+[0-9]+((\.[0-9]+(E[-+]?[0-9]+)?)|(E[-+]?[0-9]+)) { if (DEBUG) printf("REAL_CONSTANT: %s\n", yytext); yylval.floatVal = atof(yytext); return REAL_CONSTANT; }
+[0-9]+                                           { if (DEBUG) printf("INT_CONSTANT: %s\n", yytext);  yylval.intVal = atoi(yytext); return INT_CONSTANT; }
 [mM][aA][iI][nN]                                 { if (DEBUG) printf("MAIN: %s\n", yytext);          return MAIN; }
 [eE][nN][dD]                                     { if (DEBUG) printf("END: %s\n", yytext);           return END; }
 [iI][fF]                                         { if (DEBUG) printf("IF: %s\n", yytext);            return IF; }
@@ -53,8 +54,8 @@
 "~"                                              { if (DEBUG) printf("NOT: %s\n", yytext);           return NOT; }
 "("                                              { if (DEBUG) printf("LPAR: %s\n", yytext);          return LPAR; }
 ")"                                              { if (DEBUG) printf("RPAR: %s\n", yytext);          return RPAR; }
-\"([^"\n]|(\"\"))*\"                             { if (DEBUG) printf("STRING: %s\n", yytext);        return STRING; }
-[a-zA-Z][a-zA-Z0-9]*                             { if (DEBUG) printf("VAR: %s\n", yytext);           return VAR; }
+\"([^"\n]|(\"\"))*\"                             { if (DEBUG) printf("STRING: %s\n", yytext); yylval.strVal = strdup(yytext); return STRING; }
+[a-zA-Z][a-zA-Z0-9]*                             { if (DEBUG) printf("VAR: %s\n", yytext); yylval.strVal = strdup(yytext); return VAR; }
 (\r)*\n                                          { if (DEBUG) printf("NEWLINE\n"); }
 [ \t]                                            { /* Do nothing */ }
 .                                                { if (DEBUG) printf("TRASH: %s\n", yytext);         return TRASH; }

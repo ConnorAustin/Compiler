@@ -4,13 +4,24 @@
 	/*  CS 4223, Compiler */
 	/*--------------------*/
 	#include <stdio.h>
+	#include "symbol_table.h"
+
 	int yylex();
 	int yyerror(char *s);
+
+	Type curTypeDeclaration;
 %}
 
-%token VAR
-%token REAL_CONSTANT
-%token INT_CONSTANT
+%union
+{
+    int intVal;
+    float floatVal;
+    char *strVal;
+}
+
+%token <strVal> VAR
+%token <floatVal> REAL_CONSTANT
+%token <intVal> INT_CONSTANT
 %token MAIN
 %token END
 %token IF ELSE
@@ -31,7 +42,7 @@
 %token ASSIGN
 %token AND OR NOT
 %token LPAR RPAR
-%token STRING
+%token <strVal> STRING
 %token NEWLINE
 %token TRASH
 
@@ -47,19 +58,113 @@ vardeclarations: /* empty */
 |                declaration vardeclarations
 ;
 
-declaration: INTEGER COLON varlist SEMICOLON
-|            REAL COLON varlist SEMICOLON
+declaration: INTEGER { curTypeDeclaration = INTEGER_TYPE; } COLON varlist SEMICOLON
+|            REAL { curTypeDeclaration = REAL_TYPE; } COLON varlist SEMICOLON
 ;
 
-varlist: varlistitem COMMA varlist
-|        varlistitem
+varlist: var COMMA varlist
+|        var
 ;
 
-varlistitem: VAR
-|            VAR LBRACKET INT_CONSTANT RBRACKET
+algorithmsection: ALGORITHM COLON statements
 ;
 
-algorithmsection: ALGORITHM COLON
+statements: /* empty */
+|           statement statements
+;
+
+statement: assignment
+|          conditional
+|          while
+|          read
+|          print
+|          exit
+|          counting
+;
+
+assignment: var ASSIGN expression SEMICOLON
+;
+
+conditional: IF expression SEMICOLON statements END IF SEMICOLON
+|            IF expression SEMICOLON statements ELSE SEMICOLON statements END IF SEMICOLON
+;
+
+while: WHILE expression SEMICOLON statements END WHILE SEMICOLON
+;
+
+read: READ var SEMICOLON
+;
+
+print: PRINT printlist SEMICOLON
+;
+
+printlist: printitem printlist
+|          printitem
+;
+
+printitem: BANG
+|          expression
+|          STRING
+;
+
+exit: EXIT SEMICOLON
+;
+
+counting: COUNTING VAR UPWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON
+|         COUNTING VAR DOWNWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON
+;
+
+expression: NOT expression
+|           expression AND compareexpr
+|           expression OR compareexpr
+|           compareexpr
+;
+
+compareexpr: compareexpr LESS addexpr
+|            compareexpr GREATER addexpr
+|            compareexpr LEQ addexpr
+|            compareexpr GEQ addexpr
+|            compareexpr NEQ addexpr
+|            compareexpr EQ addexpr
+|            addexpr
+;
+
+addexpr: addexpr PLUS mulexpr
+|        addexpr MINUS mulexpr
+|        mulexpr
+;
+
+mulexpr: mulexpr MULTIPLY factor
+|        mulexpr MODULO factor
+|        mulexpr DIVIDE factor
+|        factor
+;
+
+factor: LPAR expression RPAR
+|       atom
+|       MINUS factor
+|       PLUS factor
+;
+
+atom: var
+|     INT_CONSTANT
+|     REAL_CONSTANT
+;
+
+var: VAR {
+            Var var;
+         	var.isArray = 0;
+         	var.arrayLength = 1;
+         	var.name = $VAR;
+			var.type = curTypeDeclaration;
+			symbolTableAddVar(var); }
+|    VAR LBRACKET INT_CONSTANT[LENGTH] RBRACKET {
+           Var var;
+           var.isArray = 1;
+           var.arrayLength = $LENGTH;
+           var.name = $VAR;
+		   var.type = curTypeDeclaration;
+           symbolTableAddVar(var); }
 ;
 
 %%
