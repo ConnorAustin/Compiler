@@ -9,6 +9,8 @@
 
     // Prints out the scanned tokens
     #define DEBUG 0
+
+    int lineNumber = 1;
 %}
 
 %%
@@ -56,7 +58,7 @@
 ")"                                              { if (DEBUG) printf("RPAR: %s\n", yytext);          return RPAR; }
 \"([^"\n]|(\"\"))*\"                             { if (DEBUG) printf("STRING: %s\n", yytext); yylval.strVal = strdup(yytext); return STRING; }
 [a-zA-Z][a-zA-Z0-9]*                             { if (DEBUG) printf("VAR: %s\n", yytext); yylval.strVal = strdup(yytext); return VAR; }
-(\r)*\n                                          { if (DEBUG) printf("NEWLINE\n"); }
+(\r)*\n                                          { if (DEBUG) printf("NEWLINE\n"); lineNumber++; }
 [ \t]                                            { /* Do nothing */ }
 .                                                { if (DEBUG) printf("TRASH: %s\n", yytext);         return TRASH; }
 %%

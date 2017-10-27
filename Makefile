@@ -1,7 +1,7 @@
-compiler: lexer.l parser.y symbol_table.c main.c
+compiler: lexer.l parser.y gen.c symbol_table.c main.c
 	bison -d parser.y
 	flex lexer.l
-	gcc -o compiler symbol_table.c main.c parser.tab.c lex.yy.c -lfl
+	gcc -o compiler gen.c symbol_table.c main.c parser.tab.c lex.yy.c -lfl
 
 clean:
 	rm -f lex.yy.c

@@ -2,6 +2,8 @@
 #include "parser.tab.h"
 #include "symbol_table.h"
 
+extern int lineNumber;
+
 int main() {
 	// If an error occurred
 	if(yyparse()) {
@@ -9,7 +11,7 @@ int main() {
 	}
 	else {
 		symbolTablePrint();
-		printf("Grammar accepted!\n");
+		printf("Grammar accepted\n");
 	}
 }
 

@@ -1,3 +1,6 @@
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
+
 #define SYMBOL_TABLE_MAX_VARIABLES 300
 
 typedef enum {
@@ -22,3 +25,5 @@ void initSymbolTable();
 Var* symbolTableGetVar(char* varName);
 void symbolTableAddVar(Var var);
 void symbolTablePrint();
+
+#endif
