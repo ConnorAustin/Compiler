@@ -4,8 +4,8 @@
 #define SYMBOL_TABLE_MAX_VARIABLES 300
 
 typedef enum {
-	INTEGER_TYPE,
-	REAL_TYPE
+	INTEGER_TYPE = 0,
+	REAL_TYPE = 1
 } Type;
 
 typedef struct {
@@ -25,5 +25,6 @@ void initSymbolTable();
 Var* symbolTableGetVar(char* varName);
 void symbolTableAddVar(Var var);
 void symbolTablePrint();
+int symbolTableTotalSize();
 
 #endif

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "parser.tab.h"
 #include "symbol_table.h"
+#include "gen.h"
 
 extern int lineNumber;
 
@@ -10,8 +11,7 @@ int main() {
 		printf("Grammar not accepted...\n");
 	}
 	else {
-		symbolTablePrint();
-		printf("Grammar accepted\n");
+		codeGen();
 	}
 }
 

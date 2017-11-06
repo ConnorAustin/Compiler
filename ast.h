@@ -18,9 +18,15 @@ typedef enum {
 	GEG_OP,
 	NEQ_OP,
 	EQ_OP,
+	ASSIGNMENT_OP,
+	CONDITIONAL_OP,
+	IFELSE_OP,
+	PRINT_OP,
 	VARIABLE,
 	LITERAL_INT,
-	LITERAL_REAL
+	LITERAL_REAL,
+	LITERAL_STRING,
+	LITERAL_NEWLINE
 } Kind;
 
 typedef struct AstNode {
@@ -28,6 +34,7 @@ typedef struct AstNode {
 
 	struct AstNode *left;
 	struct AstNode *right;
+	struct AstNode *elseNode;
 
 	Kind kind;
 	Type type;

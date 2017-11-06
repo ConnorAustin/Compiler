@@ -50,3 +50,7 @@ void symbolTablePrint() {
 		}
 	}
 }
+
+int symbolTableTotalSize() {
+	return address;
+}

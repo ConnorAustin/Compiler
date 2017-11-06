@@ -7,6 +7,7 @@
 
 	int yylex();
 	int yyerror(char *s);
+
 %}
 
 %code requires {
@@ -14,6 +15,9 @@
 
 	#include "ast.h"
 	#include "symbol_table.h"
+
+	extern AstNode* root;
+
 	Type curTypeDeclaration;
 
 	// Helper function to create an expression node in the AST
@@ -57,6 +61,7 @@
 %token TRASH
 
 %type <var> vardecl
+%type <node> algorithmsection
 %type <node> statements
 %type <node> statement
 %type <node> var
@@ -66,12 +71,18 @@
 %type <node> mulexpr
 %type <node> factor
 %type <node> atom
-
+%type <node> print
+%type <node> printlist
+%type <node> printitem
 %type <node> assignment
+%type <node> conditional
+%type <node> ifelse
 
 %%
 
-program: MAIN SEMICOLON datasection algorithmsection END MAIN SEMICOLON
+program: MAIN SEMICOLON datasection algorithmsection END MAIN SEMICOLON {
+    root = $4;
+}
 ;
 
 datasection: DATA COLON vardeclarations
@@ -93,7 +104,9 @@ varlist: vardecl COMMA varlist  {
          }
 ;
 
-algorithmsection: ALGORITHM COLON statements
+algorithmsection: ALGORITHM COLON statements {
+    $$ = $3;
+}
 ;
 
 statements: /* empty */ {
@@ -109,30 +122,46 @@ statement: assignment {
                $$ = $1;
            }
 |          conditional {
-               $$ = NULL;
+               $$ = $1;
+           }
+|          ifelse {
+               $$ = $1;
            }
 |          while {
                $$ = NULL;
+			   perror("Unimplemented code");
            }
 |          read {
                $$ = NULL;
+			   perror("Unimplemented code");
            }
 |          print {
-               $$ = NULL; // TODO
+               $$ = $1;
            }
 |          exit {
                $$ = NULL;
+			   perror("Unimplemented code");
            }
 |          counting {
 	           $$ = NULL;
+			   perror("Unimplemented code");
            }
 ;
 
-assignment: var ASSIGN expression SEMICOLON
+assignment: var ASSIGN expression SEMICOLON {
+    $$ = newExpression(ASSIGNMENT_OP, $1, $3);
+}
 ;
 
-conditional: IF expression SEMICOLON statements END IF SEMICOLON
-|            IF expression SEMICOLON statements ELSE SEMICOLON statements END IF SEMICOLON
+conditional: IF expression SEMICOLON statements END IF SEMICOLON {
+    $$ = newExpression(CONDITIONAL_OP, $2, $4);
+}
+;
+
+ifelse: IF expression SEMICOLON statements ELSE SEMICOLON statements END IF SEMICOLON {
+	$$ = newExpression(IFELSE_OP, $2, $4);
+	$$->elseNode = $7;
+}
 ;
 
 while: WHILE expression SEMICOLON statements END WHILE SEMICOLON
@@ -141,16 +170,30 @@ while: WHILE expression SEMICOLON statements END WHILE SEMICOLON
 read: READ var SEMICOLON
 ;
 
-print: PRINT printlist SEMICOLON
+print: PRINT printlist SEMICOLON {
+    $$ = newExpression(PRINT_OP, NULL, $2);
+}
 ;
 
-printlist: printitem printlist
-|          printitem
+printlist: printitem COMMA printlist {
+               $$ = $1;
+			   $$->next = $3;
+           }
+|          printitem {
+               $$ = $1;
+           }
 ;
 
-printitem: BANG
-|          expression
-|          STRING
+printitem: BANG {
+               $$ = newExpression(LITERAL_NEWLINE, NULL, NULL);
+           }
+|          expression {
+               $$ = $1;
+           }
+|          STRING {
+               $$ = newExpression(LITERAL_STRING, NULL, NULL);
+			   $$->strVal = $1;
+           }
 ;
 
 exit: EXIT SEMICOLON
@@ -266,15 +309,12 @@ vardecl: VAR {
 ;
 
 var: VAR {
-	     $$ = (AstNode *)malloc(sizeof(AstNode));
-         $$->kind = VARIABLE;
-         $$->strVal = $VAR;
-		 $$->right = NULL;
+         $$ = newExpression(VARIABLE, NULL, NULL);
+         $$->strVal = $1;
      }
 |    VAR LBRACKET expression RBRACKET {
-	     $$ = (AstNode *)malloc(sizeof(AstNode));
-	     $$->kind = VARIABLE;
-	     $$->strVal = $VAR;
+         $$ = newExpression(VARIABLE, NULL, NULL);
+         $$->strVal = $1;
 		 $$->right = $3;
      }
 ;

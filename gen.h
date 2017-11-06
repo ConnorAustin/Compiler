@@ -3,10 +3,6 @@
 
 #include "ast.h"
 
-void codegen(AstNode *root);
-
-void exprgen(AstNode *root);
-
-void addressgen();
+void codeGen();
 
 #endif
