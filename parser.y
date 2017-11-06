@@ -77,6 +77,7 @@
 %type <node> assignment
 %type <node> conditional
 %type <node> ifelse
+%type <node> while
 
 %%
 
@@ -128,8 +129,7 @@ statement: assignment {
                $$ = $1;
            }
 |          while {
-               $$ = NULL;
-			   perror("Unimplemented code");
+               $$ = $1;
            }
 |          read {
                $$ = NULL;
@@ -164,7 +164,9 @@ ifelse: IF expression SEMICOLON statements ELSE SEMICOLON statements END IF SEMI
 }
 ;
 
-while: WHILE expression SEMICOLON statements END WHILE SEMICOLON
+while: WHILE expression SEMICOLON statements END WHILE SEMICOLON {
+    $$ = newExpression(WHILE_OP, $2, $4);
+}
 ;
 
 read: READ var SEMICOLON

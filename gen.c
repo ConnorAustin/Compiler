@@ -66,6 +66,10 @@ void replaceCodeFloat(int index, char *str, float num) {
 
 void addressGen(AstNode *node) {
 	Var* var = symbolTableGetVar(node->strVal);
+	if(var == NULL) {
+		printf("Error: unknown variable: %s\n", node->strVal);
+		exit(-1);
+	}
 	if(var->isArray) {
 		exprGen(node->right);
 		addCodeInt("LRA", var->address);
@@ -346,7 +350,14 @@ void printGen(AstNode *node) {
 			addCode("PTL");
 		} else if(list->kind == LITERAL_STRING) {
 			for(int i = 1; i < strlen(list->strVal) - 1; i++) {
-				addCodeInt("LLI", (int)list->strVal[i]);
+				int c = (int)list->strVal[i];
+
+				// Skip the paired quotation mark
+				if(c == (int)'"') {
+					i++;
+				}
+
+				addCodeInt("LLI", c);
 				addCode("PTC");
 			}
 		} else {
@@ -410,6 +421,24 @@ void reserveVars() {
 	symbolTableAddVar(reservedVar);
 }
 
+void whileGen(AstNode *node) {
+	int jumpToTopIndex = codeEnd + 1;
+
+	exprGen(node->left);
+	nonZeroGen(node->left->type);
+
+	addCode("NOP"); // Reserve space for JPF to bottom
+	int jumpToEndIndex = codeEnd;
+
+	perror("aaa");
+
+	nodeGen(node->right);
+
+	addCodeInt("JMP", jumpToTopIndex);
+
+	replaceCodeInt(jumpToEndIndex, "JPF", codeEnd + 1);
+}
+
 void nodeGen(AstNode *node) {
 	while(node != NULL) {
 		switch(node->kind) {
@@ -424,6 +453,9 @@ void nodeGen(AstNode *node) {
 				break;
 			case IFELSE_OP:
 				ifelseGen(node);
+				break;
+			case WHILE_OP:
+				whileGen(node);
 				break;
 		}
 		node = node->next;
