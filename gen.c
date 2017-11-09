@@ -72,6 +72,9 @@ void addressGen(AstNode *node) {
 	}
 	if(var->isArray) {
 		exprGen(node->right);
+		if(node->right->type == REAL_TYPE) {
+			addCode("FTI");
+		}
 		addCodeInt("LRA", var->address);
 		addCode("ADI");
 	} else {
@@ -397,7 +400,7 @@ void ifelseGen(AstNode *node) {
 	addCode("NOP"); // Reserve space for JMP instruction to skip over else
 	int skipIndex = codeEnd;
 
-	nodeGen(node->elseNode);
+	nodeGen(node->misc);
 
 	replaceCodeInt(jumpIndex, "JPF", skipIndex + 1);
 	replaceCodeInt(skipIndex, "JMP", codeEnd + 1);
@@ -405,7 +408,7 @@ void ifelseGen(AstNode *node) {
 
 void allocateVarsGen() {
 	int size = symbolTableTotalSize();
-	addCodeInt("ISP", size);
+	replaceCodeInt(0, "ISP", size);
 }
 
 void reserveVars() {
@@ -439,6 +442,86 @@ void whileGen(AstNode *node) {
 	replaceCodeInt(jumpToEndIndex, "JPF", codeEnd + 1);
 }
 
+void countingGen(AstNode *node) {
+	static int countingID = 0;
+
+	// Check that the loop control variable is an integer
+	Var *var = symbolTableGetVar(node->misc->strVal);
+	if(var) {
+		if(var->type != INTEGER_TYPE) {
+			printf("Error: The loop control variable '%s' is not an integer.\n", var->name);
+			exit(-1);
+		}
+	}
+
+	// Initial value
+	addressGen(node->misc);
+	exprGen(node->left);
+	if(node->left->type == REAL_TYPE) {
+		addCode("FTI");
+	}
+	addCode("STO");
+
+	// Create compiler variable to store the end expression
+	char varName[100];
+	countingID++;
+	Var endVar;
+	endVar.isArray = 0;
+	endVar.arrayLength = 1;
+	endVar.type = INTEGER_TYPE;
+	sprintf(varName, "_%d", countingID);
+	endVar.name = strdup(varName);
+	symbolTableAddVar(endVar);
+
+	// End value
+	int endAddress = symbolTableGetVar(varName)->address;
+	addCodeInt("LRA", endAddress);
+	exprGen(node->right);
+	if(node->right->type == REAL_TYPE) {
+		addCode("FTI");
+	}
+	addCode("STO");
+
+	// Conditional
+	int countingStartIndex = codeEnd + 1;
+	addressGen(node->misc);
+	addCode("LOD");
+	addCodeInt("LRA", endAddress);
+	addCode("LOD");
+
+	if(node->kind == COUNTING_UPWARD_OP) {
+		addCode("LEI");
+	}
+	else {
+		addCode("GEI");
+	}
+	// Reserve spot for JPF to end
+	addCode("NOP");
+	int jumpToEndIndex = codeEnd;
+
+	// Body
+	nodeGen(node->misc2);
+
+	// Increment / Decrement
+	addressGen(node->misc);
+	addressGen(node->misc);
+	addCode("LOD");
+	if(node->kind == COUNTING_UPWARD_OP) {
+		addCodeInt("LLI", 1);
+		addCode("ADI");
+	} else {
+		addCodeInt("LLI", 1);
+		addCode("SBI");
+	}
+	addCode("STO");
+
+	// Jump back to conditional
+	addCodeInt("JMP", countingStartIndex);
+
+	// Fill in jump to bottom
+	replaceCodeInt(jumpToEndIndex, "JPF", codeEnd + 1);
+}
+
 void nodeGen(AstNode *node) {
 	while(node != NULL) {
 		switch(node->kind) {
@@ -457,6 +540,10 @@ void nodeGen(AstNode *node) {
 			case WHILE_OP:
 				whileGen(node);
 				break;
+			case COUNTING_UPWARD_OP:
+			case COUNTING_DOWNWARD_OP:
+				countingGen(node);
+				break;
 		}
 		node = node->next;
 	}
@@ -465,10 +552,11 @@ void nodeGen(AstNode *node) {
 void codeGen() {
 	codeStmts = (char **)malloc(size * sizeof(char *));
 
+	addCode("NOP"); // Reserve spot for allocateVarsGen
 	reserveVars();
-	allocateVarsGen();
 	nodeGen(root);
 	addCode("HLT");
+	allocateVarsGen();
 
 	// Print out code
 	for(int i = 0; i <= codeEnd; i++) {

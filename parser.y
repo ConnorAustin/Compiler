@@ -78,6 +78,7 @@
 %type <node> conditional
 %type <node> ifelse
 %type <node> while
+%type <node> counting
 
 %%
 
@@ -143,8 +144,7 @@ statement: assignment {
 			   perror("Unimplemented code");
            }
 |          counting {
-	           $$ = NULL;
-			   perror("Unimplemented code");
+               $$ = $1;
            }
 ;
 
@@ -160,7 +160,7 @@ conditional: IF expression SEMICOLON statements END IF SEMICOLON {
 
 ifelse: IF expression SEMICOLON statements ELSE SEMICOLON statements END IF SEMICOLON {
 	$$ = newExpression(IFELSE_OP, $2, $4);
-	$$->elseNode = $7;
+	$$->misc = $7;
 }
 ;
 
@@ -201,8 +201,16 @@ printitem: BANG {
 exit: EXIT SEMICOLON
 ;
 
-counting: COUNTING VAR UPWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON
-|         COUNTING VAR DOWNWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON
+counting: COUNTING var UPWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON {
+	          $$ = newExpression(COUNTING_UPWARD_OP, $4, $6);
+			  $$->misc = $2;
+			  $$->misc2 = $8;
+          }
+|         COUNTING var DOWNWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON {
+             $$ = newExpression(COUNTING_DOWNWARD_OP, $4, $6);
+			 $$->misc = $2;
+			 $$->misc2 = $8;
+          }
 ;
 
 expression: NOT expression {
@@ -299,7 +307,7 @@ atom: var {
 vardecl: VAR {
          $$.isArray = 0;
          $$.arrayLength = 1;
-         $$.name = $VAR;
+         $$.name = $1;
 	     $$.type = curTypeDeclaration;
      }
 |    VAR LBRACKET INT_CONSTANT RBRACKET {

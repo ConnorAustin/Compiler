@@ -23,6 +23,8 @@ typedef enum {
 	IFELSE_OP,
 	PRINT_OP,
 	WHILE_OP,
+	COUNTING_DOWNWARD_OP,
+	COUNTING_UPWARD_OP,
 	VARIABLE,
 	LITERAL_INT,
 	LITERAL_REAL,
@@ -35,7 +37,8 @@ typedef struct AstNode {
 
 	struct AstNode *left;
 	struct AstNode *right;
-	struct AstNode *elseNode;
+	struct AstNode *misc;
+	struct AstNode *misc2;
 
 	Kind kind;
 	Type type;
