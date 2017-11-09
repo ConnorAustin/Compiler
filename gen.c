@@ -229,6 +229,7 @@ void negateGen(AstNode *node) {
 		replaceCodeFloat(loadIndex, "LLF", 0.0f);
 		addCode("SBF");
 	}
+	node->type = node->right->type;
 }
 
 void exprGen(AstNode *node) {
