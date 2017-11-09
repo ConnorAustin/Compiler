@@ -433,8 +433,6 @@ void whileGen(AstNode *node) {
 	addCode("NOP"); // Reserve space for JPF to bottom
 	int jumpToEndIndex = codeEnd;
 
-	perror("aaa");
-
 	nodeGen(node->right);
 
 	addCodeInt("JMP", jumpToTopIndex);
@@ -522,6 +520,10 @@ void countingGen(AstNode *node) {
 	replaceCodeInt(jumpToEndIndex, "JPF", codeEnd + 1);
 }
 
+void exitGen(AstNode *node) {
+	addCode("HLT");
+}
+
 void nodeGen(AstNode *node) {
 	while(node != NULL) {
 		switch(node->kind) {
@@ -543,6 +545,9 @@ void nodeGen(AstNode *node) {
 			case COUNTING_UPWARD_OP:
 			case COUNTING_DOWNWARD_OP:
 				countingGen(node);
+				break;
+			case EXIT_OP:
+				exitGen(node);
 				break;
 		}
 		node = node->next;

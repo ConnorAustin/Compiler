@@ -79,6 +79,7 @@
 %type <node> ifelse
 %type <node> while
 %type <node> counting
+%type <node> exit
 
 %%
 
@@ -140,8 +141,7 @@ statement: assignment {
                $$ = $1;
            }
 |          exit {
-               $$ = NULL;
-			   perror("Unimplemented code");
+               $$ = $1;
            }
 |          counting {
                $$ = $1;
@@ -198,7 +198,9 @@ printitem: BANG {
            }
 ;
 
-exit: EXIT SEMICOLON
+exit: EXIT SEMICOLON {
+	      $$ = newExpression(EXIT_OP, NULL, NULL);
+      }
 ;
 
 counting: COUNTING var UPWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON {
