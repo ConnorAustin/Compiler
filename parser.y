@@ -80,6 +80,7 @@
 %type <node> while
 %type <node> counting
 %type <node> exit
+%type <node> read
 
 %%
 
@@ -134,8 +135,7 @@ statement: assignment {
                $$ = $1;
            }
 |          read {
-               $$ = NULL;
-			   perror("Unimplemented code");
+               $$ = $1;
            }
 |          print {
                $$ = $1;
@@ -169,7 +169,9 @@ while: WHILE expression SEMICOLON statements END WHILE SEMICOLON {
 }
 ;
 
-read: READ var SEMICOLON
+read: READ var SEMICOLON {
+    $$ = newExpression(READ_OP, NULL, $2);
+}
 ;
 
 print: PRINT printlist SEMICOLON {
@@ -199,8 +201,8 @@ printitem: BANG {
 ;
 
 exit: EXIT SEMICOLON {
-	      $$ = newExpression(EXIT_OP, NULL, NULL);
-      }
+     $$ = newExpression(EXIT_OP, NULL, NULL);
+}
 ;
 
 counting: COUNTING var UPWARD expression TO expression SEMICOLON statements END COUNTING SEMICOLON {

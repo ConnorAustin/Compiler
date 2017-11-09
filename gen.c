@@ -13,6 +13,15 @@ void exprGen(AstNode *node);
 
 AstNode *root;
 
+Type getVarType(AstNode *node) {
+	Var *var = symbolTableGetVar(node->strVal);
+	if(!var) {
+		printf("Error: unknown variable: %s\n", node->strVal);
+	}
+
+	return var->type;
+}
+
 void newCodeStatement() {
 	codeEnd += 1;
 	if(codeEnd == size) {
@@ -444,12 +453,9 @@ void countingGen(AstNode *node) {
 	static int countingID = 0;
 
 	// Check that the loop control variable is an integer
-	Var *var = symbolTableGetVar(node->misc->strVal);
-	if(var) {
-		if(var->type != INTEGER_TYPE) {
-			printf("Error: The loop control variable '%s' is not an integer.\n", var->name);
-			exit(-1);
-		}
+	if(getVarType(node->misc) != INTEGER_TYPE) {
+		printf("Error: The loop control variable '%s' is not an integer.\n", node->misc->strVal);
+		exit(-1);
 	}
 
 	// Initial value
@@ -524,6 +530,19 @@ void exitGen(AstNode *node) {
 	addCode("HLT");
 }
 
+void readGen(AstNode *node) {
+	addressGen(node->right);
+
+	Type type = getVarType(node->right);
+	if(type == INTEGER_TYPE) {
+		addCode("INI");
+	} else {
+		addCode("INF");
+	}
+
+	addCode("STO");
+}
+
 void nodeGen(AstNode *node) {
 	while(node != NULL) {
 		switch(node->kind) {
@@ -548,6 +567,9 @@ void nodeGen(AstNode *node) {
 				break;
 			case EXIT_OP:
 				exitGen(node);
+				break;
+			case READ_OP:
+				readGen(node);
 				break;
 		}
 		node = node->next;
